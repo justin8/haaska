@@ -103,3 +103,14 @@ build
 haaska.zip
 /.vs
 /.idea/
+*.js
+!jest.config.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+src/config.json
+src/wireguard.conf
