@@ -1,0 +1,7 @@
+Update/maintenance instructions:
+
+1. `git pull`
+2. Delete old build files: `rm -rf build haaska.zip`
+3. Check python version in shell matches one used by the lambda function before continuing
+4. Generate the haaska.zip file: `make`
+5. Deploy to Lambda: `aws --region us-west-2 lambda update-function-code --function-name haaska --zip-file fileb://haaska.zip`
