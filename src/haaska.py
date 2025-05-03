@@ -24,10 +24,19 @@
 import json
 import logging
 import os
+import subprocess
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 logger = logging.getLogger()
+
+subprocess.Popen(
+    ["wireproxy", "--daemon", "--config", "wireguard.conf"],
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+)
 
 
 class HomeAssistant(object):
@@ -42,6 +51,22 @@ class HomeAssistant(object):
         }
         self.session.verify = config.ssl_verify
         self.session.cert = tuple(config.ssl_client)
+
+        # Configure retries with a delay
+        retries = Retry(
+            total=10,  # Retry up to 10 times
+            backoff_factor=0.01,  # Wait 10ms between retries, increasing exponentially
+            status_forcelist=[500, 502, 503, 504],  # Retry on these HTTP status codes
+        )
+        adapter = HTTPAdapter(max_retries=retries)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+
+        # Set up SOCKS5 proxy
+        self.session.proxies = {
+            "http": "socks5://127.0.0.1:25344",
+            "https": "socks5://127.0.0.1:25344",
+        }
 
     def build_url(self, endpoint):
         return f"{self.config.url}/api/{endpoint}"
